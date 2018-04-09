@@ -20,20 +20,21 @@ func main() {
   fmt.Printf( "Devices: %v\n", devs )
 
   for _, dev := range devs {
-    rmdev := dev.(*broadlink.RmDevice)
-    err = rmdev.BaseDevice.Auth()
+    sp3sdev := dev.(*broadlink.Sp3sDevice)
+    err = sp3sdev.BaseDevice.Auth()
     if err != nil {
       panic(err)
     }
 
-    _, err := rmdev.BaseDevice.EnterLearning()
+    resp, err := sp3sdev.BaseDevice.EnterLearning()
     if err != nil {
       panic(err)
     }
+    fmt.Printf( "enter learning mode:%v\n", resp )
 
     var data []byte
     for {
-      data, err = rmdev.BaseDevice.CheckData()
+      data, err = sp3sdev.BaseDevice.CheckData()
       if err == nil {
         break
       }
@@ -42,7 +43,7 @@ func main() {
     fmt.Printf( "Learnt Data: %v\n", data )
 
     time.Sleep( 5000 * time.Millisecond )
-    err = rmdev.BaseDevice.SendData( data )
+    err = sp3sdev.BaseDevice.SendData( data )
     if err != nil {
       panic(err)
     }

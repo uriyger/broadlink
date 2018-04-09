@@ -18,6 +18,7 @@ type Device interface{
   PacketCount() uint16
   Encrypt( ps []byte ) ( []byte, error )
   Decrypt( ps []byte ) ( []byte, error )
+  Auth() error
 }
 
 type BaseDevice struct {
@@ -93,6 +94,9 @@ func (bd *BaseDevice) newDevice(devtype uint16) (dev Device) {
   // RM Mini
   case 0x2737:
     dev = newRM(bd)
+  // SP3S
+  case 0x947a:
+    dev = newSp3s(bd)
   default:
   }
 
