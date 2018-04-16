@@ -18,6 +18,20 @@ func (rm *Sp3sDevice) Send(data []byte) {
 
 }
 
-func (rm *Sp3sDevice) EnterLearning() {
+func (bd *BaseDevice) CheckPower() (bool, error) {
+	command := NewCheckPowerCommand()
+	response, err := bd.SendCommand(command)
 
+	//response = self.send_packet(0x6a, packet)
+	//err = response[0x22] | (response[0x23] << 8)
+	//if err == 0:
+	//payload = self.decrypt(bytes(response[0x38:]))
+
+	//if ord(payload[0x4]) == 1 or ord(payload[0x4]) == 3:
+	//state = True
+	//else:
+	//state = False
+	//return state
+
+	return int(response[0x3]) == 1 || int(response[0x3]) == 3, err
 }

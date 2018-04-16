@@ -20,7 +20,7 @@ func main() {
   fmt.Printf( "Devices: %v\n", devs )
 
   for _, dev := range devs {
-    rmdev := dev.(*broadlink.RmDevice)
+    rmdev := dev.(*broadlink.Sp3sDevice)
     err = rmdev.BaseDevice.Auth()
     if err != nil {
       panic(err)
