@@ -1,100 +1,100 @@
 package broadlink
 
 import (
-  "log"
-  "net"
-  "time"
-  "errors"
+	"errors"
+	"log"
+	"net"
+	"time"
 )
 
 const DISCOVERY_PORT = 80
 
 type Manager struct {
-  conn *net.UDPConn
-  laddr *net.UDPAddr
-  devices []Device
+	conn    *net.UDPConn
+	laddr   *net.UDPAddr
+	devices []Device
 }
 
-func NewManager() ( *Manager, error ) {
-  udpconn, err := net.ListenUDP( "udp", nil )
-  if err != nil {
-    return nil, err
-  }
+func NewManager() (*Manager, error) {
+	udpconn, err := net.ListenUDP("udp", nil)
+	if err != nil {
+		return nil, err
+	}
 
-  laddr := GetLocalAddr()
+	laddr := GetLocalAddr()
 
-  return &Manager{
-    conn: udpconn,
-    laddr: laddr,
-  }, nil
+	return &Manager{
+		conn:  udpconn,
+		laddr: laddr,
+	}, nil
 }
 
-func ( m *Manager ) Discover( timeout time.Duration ) ( devices []Device, err error ) {
-  devices = make( []Device, 0 )
+func (m *Manager) Discover(timeout time.Duration) (devices []Device, err error) {
+	devices = make([]Device, 0)
 
-  mcaddr := &net.UDPAddr{
-    IP:   net.IPv4bcast,
-    Port: DISCOVERY_PORT,
-  }
+	mcaddr := &net.UDPAddr{
+		IP:   net.IPv4bcast,
+		Port: DISCOVERY_PORT,
+	}
 
-  // broadcast
-  dp := NewDiscoveryPacket( time.Now(), m.laddr )
-  dps, err := dp.Bytes()
-  if err != nil {
-    return devices, err
-  }
-  m.conn.WriteTo( dps, mcaddr )
+	// broadcast
+	dp := NewDiscoveryPacket(time.Now(), m.laddr)
+	dps, err := dp.Bytes()
+	if err != nil {
+		return devices, err
+	}
+	m.conn.WriteTo(dps, mcaddr)
 
-  //read
-  m.conn.SetReadDeadline( time.Now().Add( timeout ) )
-  resp := make( []byte, 1024 )
+	//read
+	m.conn.SetReadDeadline(time.Now().Add(timeout))
+	resp := make([]byte, 1024)
 
-  for {
-    size, raddr, err := m.conn.ReadFromUDP( resp )
-    if err != nil {
-      return devices, err
-    }
-    // if err, ok := err.(net.Error); ok && err.Timeout() {
-    //   return
-    // }
-    
-    if size == 0 {
-      err = errors.New( "Unable to read discovery response" )
-      return devices, err
-    }
+	for {
+		size, raddr, err := m.conn.ReadFromUDP(resp)
+		if err != nil {
+			return devices, err
+		}
+		// if err, ok := err.(net.Error); ok && err.Timeout() {
+		//   return
+		// }
 
-    dr := NewDiscoveryResponse( resp )
+		if size == 0 {
+			err = errors.New("Unable to read discovery response")
+			return devices, err
+		}
 
-    bd, err := newBaseDevice( raddr, dr.MAC )
-    if err != nil {
-      return devices, err
-    }
-    dev := bd.newDevice( dr.DeviceType )
-    m.devices = append( m.devices, dev )
+		dr := NewDiscoveryResponse(resp)
 
-    break // Use channels to push out new devices
-  }
+		bd, err := newBaseDevice(raddr, dr.MAC)
+		if err != nil {
+			return devices, err
+		}
+		dev := bd.newDevice(dr.DeviceType)
+		m.devices = append(m.devices, dev)
 
-  return m.devices, nil
+		break // Use channels to push out new devices
+	}
+
+	return m.devices, nil
 }
 
 func GetLocalAddr() *net.UDPAddr {
-  udpcon, err := net.DialUDP( "udp",
-    nil,
-    &net.UDPAddr{
-      IP:   net.ParseIP("8.8.8.8"),
-      Port: 53,
-    },
-  )
-  if err != nil {
-    log.Fatalf( "Failed to obtain local address: %s\n", err )
-  }
-  defer udpcon.Close()
+	udpcon, err := net.DialUDP("udp",
+		nil,
+		&net.UDPAddr{
+			IP:   net.ParseIP("8.8.8.8"),
+			Port: 53,
+		},
+	)
+	if err != nil {
+		log.Fatalf("Failed to obtain local address: %s\n", err)
+	}
+	defer udpcon.Close()
 
-  laddr := udpcon.LocalAddr()
-  ludpaddr, err := net.ResolveUDPAddr( laddr.Network(), laddr.String() )
-  if err != nil {
-    log.Fatalf( "Failed to resolve local UDP address: %s\n", err )
-  }
-  return ludpaddr
+	laddr := udpcon.LocalAddr()
+	ludpaddr, err := net.ResolveUDPAddr(laddr.Network(), laddr.String())
+	if err != nil {
+		log.Fatalf("Failed to resolve local UDP address: %s\n", err)
+	}
+	return ludpaddr
 }

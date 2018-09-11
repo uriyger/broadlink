@@ -138,6 +138,35 @@ func (ac *commandCheckPower) Bytes() ([]byte, error) {
 	return ba[:], nil
 }
 
+// Get Energy
+
+type commandGetEnergy struct {
+	baseCommand
+}
+
+func NewCommandGetEnergy() Command {
+	return &commandCheckPower{
+		baseCommand{0x6a},
+	}
+}
+
+func (ac *commandGetEnergy) Bytes() ([]byte, error) {
+	ba := [0x10]byte{8, 0, 254, 1, 5, 1, 0, 0, 0, 45}
+
+	return ba[:], nil
+}
+
+//packet = bytearray([8, 0, 254, 1, 5, 1, 0, 0, 0, 45])
+//response = self.send_packet(0x6a, packet)
+//err = response[0x22] | (response[0x23] << 8)
+//if err == 0:
+//payload = self.decrypt(bytes(response[0x38:]))
+//if type(payload[0x07]) == int:
+//energy = int(hex(payload[0x07] * 256 + payload[0x06])[2:]) + int(hex(payload[0x05])[2:])/100.0
+//else:
+//energy = int(hex(ord(payload[0x07]) * 256 + ord(payload[0x06]))[2:]) + int(hex(ord(payload[0x05]))[2:])/100.0
+//return energy
+
 //Enter Learning
 //def enter_learning(self):
 //packet = bytearray(16)

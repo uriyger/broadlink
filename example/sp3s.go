@@ -13,7 +13,8 @@ func main() {
 		panic(err)
 	}
 
-	devs, err := manager.Discover(5 * time.Second)
+	fmt.Println("Discovering...")
+	devs, err := manager.Discover(8 * time.Second)
 	if err != nil {
 		panic(err)
 	}
@@ -33,7 +34,13 @@ func main() {
 			panic(err)
 		}
 
-		fmt.Printf("Check power response %v", resp)
+		fmt.Printf("Check power response %v\n", resp)
+
+		en, err := sp3sdev.GetEnergy()
+		if err != nil {
+			panic(err)
+		}
+		fmt.Printf("Energy: %2.1f\n", en)
 
 		//resp, err := sp3sdev.BaseDevice.EnterLearning()
 		//if err != nil {
